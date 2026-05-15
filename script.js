@@ -8,16 +8,19 @@ const chatbotToggler = document.querySelector("#chatbot-toggler");
 const closeChatbot = document.querySelector("#close-chatbot");
 
 
-//API setup
-const API_KEY = "AIzaSyCJOUCNi2v4CirGOTEPH5ENZZD6kGDIkss";
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+// API setup
+const API_KEY = "AIzaSyDmI_cahMQOMCbAMyM_DN5L7PqtE-c3J-0";
+const MODEL_NAME = "gemini-2.5-flash";
+const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
+
+const defaultFileState = {
+    data: null,
+    mime_type: null
+};
 
 const userData = {
     message: null,
-    file: {
-        data: null,
-        mime_type: null
-    }
+    file: { ...defaultFileState }
 }
 
 const chatHistory = [];
@@ -57,7 +60,8 @@ const generateBotResponse = async (incomingMessageDiv) => {
      if(!response.ok) throw new Error(data.error.message);
      
      //Extract and display bots response text
-     const apiResponseText = data.candidates[0].content.parts[0].text.replace(/\*\*(.*?)\*\*/g, "$1").trim();
+     const apiResponseText = data?.candidates?.[0]?.content?.parts?.[0]?.text?.replace(/\*\*(.*?)\*\*/g, "$1").trim();
+     if(!apiResponseText) throw new Error("The model returned an empty response.");
       messageElement.innerText = apiResponseText;
 
       //add bots response to chat history
@@ -72,7 +76,7 @@ const generateBotResponse = async (incomingMessageDiv) => {
      messageElement.style.color = "#ff0000";
    } finally {
     //reset users file data, removing thinking indicator and scroll chat to bottom
-    userData.file = {};
+    userData.file = { ...defaultFileState };
     incomingMessageDiv.classList.remove("thinking");
     chatBody.scrollTo({ top: chatBody.scrollHeight, behavior: "smooth" });
    }
@@ -125,7 +129,7 @@ const handleOutgoingMessage = (e) => {
 //Handle enter key press for sending messages
 messageInput.addEventListener("keydown", (e) => {
     const userMessage = e.target.value.trim();
-    if(e.key === "Enter" && userMessage && !e.shiftKey && Window.innerWidth > 768) {
+    if(e.key === "Enter" && userMessage && !e.shiftKey && window.innerWidth > 768) {
        handleOutgoingMessage(e);
     }
 });
@@ -161,7 +165,7 @@ fileInput.addEventListener("change", () => {
 
 //cancle file upload
 fileCancleButton.addEventListener("click", () => {
-     userData.file = {};
+     userData.file = { ...defaultFileState };
      fileUploadWrapper.classList.remove("file-uploaded");
 });
 
@@ -189,4 +193,4 @@ document.querySelector(".chat-form").appendChild(picker);
 sendMessageButton.addEventListener("click", (e) => handleOutgoingMessage(e));
 document.querySelector("#file-upload").addEventListener("click", () => fileInput.click());
 chatbotToggler.addEventListener("click", () => document.body.classList.toggle("show-chatbot"));
-close-chatbot.addEventListener("click", () => document.body.classList.remove(show-chatbot));
+closeChatbot.addEventListener("click", () => document.body.classList.remove("show-chatbot"));
